@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "LaserRadar.h"
 
-LaserRadar::LaserRadar(PhotodiodeTrigger start, PhotodiodeTrigger end, float distance)
+LaserRadar::LaserRadar(PhotodiodeTrigger start, PhotodiodeTrigger end, double distance)
 {
   _startPhotoTrigger = start;
   _endPhotoTrigger = end;
@@ -16,19 +16,20 @@ LaserRadar::LaserRadar(PhotodiodeTrigger start, PhotodiodeTrigger end, float dis
   _timerEndedAt = -1;
 }
 
-float LaserRadar::check(){
+double LaserRadar::check(){
 
   // Check start photodiode state
   _startTriggeredCurrent = _startPhotoTrigger.triggered();
 
   if (_startTriggeredCurrent && !_startTriggeredLast) {
     // something triggered the sensor
-    _timerStartedAt = millis();
-    Serial.print("Start Laser: broken, timer started at ");
-    Serial.println(_timerStartedAt);
     _startTriggeredLast = true;
+    _timerStartedAt = micros();
+    //Serial.print("Start Laser: broken, timer started at ");
+    //Serial.println(_timerStartedAt);
+
   } else if (!_startTriggeredCurrent && _startTriggeredLast) {
-    Serial.println("Start Laser: No more broken");
+    //Serial.println("Start Laser: No more broken");
     _startTriggeredLast = false;
   }
 
@@ -36,16 +37,15 @@ float LaserRadar::check(){
   _endTriggeredCurrent = _endPhotoTrigger.triggered();
 
   if (_endTriggeredCurrent && !_endTriggeredLast) {
-    Serial.println("End Laser: broken");
+    //Serial.println("End Laser: broken");
     if (_timerStartedAt != -1) {
-      _timerEndedAt = millis();
-      int time = _timerEndedAt - _timerStartedAt;
+      _timerEndedAt = micros();
+      unsigned int time = _timerEndedAt - _timerStartedAt;
       Serial.print("Time between 2 lasers: ");
       Serial.print(time);
-      Serial.println(" ms");
+      Serial.println(" micros");
 
-      float centimeterPerMillis = _distance / time;
-      float lastSpeed = cmpmsToKmph(centimeterPerMillis);
+      double lastSpeed = computeKmph(_distance, time);
 
       _timerStartedAt = -1;
       return lastSpeed;
@@ -53,15 +53,15 @@ float LaserRadar::check(){
 
     _endTriggeredLast = true;
   } else if (!_endTriggeredCurrent && _endTriggeredLast) {
-    Serial.println("End Laser: No more broken");
+    //Serial.println("End Laser: No more broken");
     _endTriggeredLast = false;
   }
 
   return 0.0;
 }
 
-float LaserRadar::cmpmsToKmph(float cmpms){
-  return cmpms * 36;
+double LaserRadar::computeKmph(double distance, unsigned int time){
+  return distance * 36000 / time;
 }
 
 void LaserRadar::reset(){

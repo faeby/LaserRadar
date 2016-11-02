@@ -7,22 +7,22 @@
 class LaserRadar
 {
   public:
-    LaserRadar(PhotodiodeTrigger start, PhotodiodeTrigger end, float distance);
-    float check();
+    LaserRadar(PhotodiodeTrigger start, PhotodiodeTrigger end, double distance);
+    double check();
   private:
     PhotodiodeTrigger _startPhotoTrigger;
     PhotodiodeTrigger _endPhotoTrigger;
-    float _distance;
+    double _distance;
 
     bool _startTriggeredCurrent;
     bool _startTriggeredLast;
     bool _endTriggeredCurrent;
     bool _endTriggeredLast;
 
-    int _timerStartedAt;
-    int _timerEndedAt;
+    unsigned int _timerStartedAt;
+    unsigned int _timerEndedAt;
 
-    float cmpmsToKmph(float cmpms);
+    double computeKmph(double distance, unsigned int time);
     void reset();
 };
 
